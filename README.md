@@ -5,16 +5,16 @@ Coding a Super Tic-Tac-Toe game engine to best my students every. single. time.
 ## Progress
 
 ### Roadmap and Features:
-- [] Generating the board
-- [] Placing pieces
-- [] Move restrictions
-- [] Win detection
-- [] Encode piece positions
-- [] Branch generation
-- [] Minimax implementation
-- [] alpha-beta trimming
-- [] symmetry trimming (don't know what to call this)
-- [] Monte Carlo Tree Simulation (MCTS)
+- [ ] Generating the board
+- [ ] Placing pieces
+- [ ] Move restrictions
+- [ ] Win detection
+- [ ] Encode piece positions
+- [ ] Branch generation
+- [ ] Minimax implementation
+- [ ] alpha-beta trimming
+- [ ] symmetry trimming (don't know what to call this)
+- [ ] Monte Carlo Tree Simulation (MCTS)
 
 ### Current: Generating the board
 
