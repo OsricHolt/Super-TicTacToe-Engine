@@ -1,0 +1,36 @@
+# Build directories
+build/
+bin/
+cmake-build-*/
+
+#Complicated files
+*.o
+*.obj
+*.exe
+*.out
+*.app
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace
+*.sln
+*.slnx
+*.vcxproj*
+
+# OS files
+.DB_Store
+Thumbs.db
+
+# Shader compiled outputs
+*.spv
+
+#Log files
+*.log
+
