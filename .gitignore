@@ -32,5 +32,9 @@ Thumbs.db
 *.spv
 
 #Log files
+*.tlog
 *.log
 
+#Visual Studio folders and files
+.vs/
+x64/
