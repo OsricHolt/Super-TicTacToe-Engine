@@ -20,6 +20,7 @@ public:
 	int bigBox;
 	int smallBox;
 	void MakeMove(int position);
+	bool IsLegalMove(int position);
 };
 
 Board::Board() {
@@ -36,38 +37,68 @@ Board::Board() {
 	bigBox = 5;
 	smallBox = 5;
 }
+bool Board::IsLegalMove(int position) {
+	if (position < 0 || position > 80) {
+		return false;
+	}
+	if (position <= 63) {
+		if ((1ULL << position) & openSpots1) {
+			return false;
+		}
+	}
+	else {
+		if ((1ULL << (position - 64)) & openSpots2) {
+			return false;
+		}
+	}
+	return true;
+}
 void Board::MakeMove(int position) {
-	if (position < 0 || position > 80) { // check if legal move
+	//		Check if move is on board	//		Check if the position is in the first bitmap and if it is open // check if the second bit map is open
+	if (!IsLegalMove(position)) { // check if legal move
 		std::cout << "Please input valid move" << std::endl;
-	} else if (turn % 2 == 0) { // check move parity; player X move sequence
-		if (position <= 62) { // check for first half of board
+		return;
+	}
+	if (turn % 2 == 0) { // check move parity; player X move sequence
+		if (position <= 63) { // check for first half of board
 			xBoard1 |= (1ULL << position);
-		} else {
-			xBoard2 |= (1ULL << (position - 63));
+		}
+		else {
+			xBoard2 |= (1ULL << (position - 64));
 		}
 		player = 'X';
-	} else {
-		if (position <= 62) { // check for first half of board
+	}
+	else {
+		if (position <= 63) { // check for first half of board
 			oBoard1 |= (1ULL << position);
 		}
 		else {
-			oBoard2 |= (1ULL << (position - 63));
+			oBoard2 |= (1ULL << (position - 64));
 		}
 		player = 'O';
+	}
+	if (position <= 63) { // check for first half of board
+		openSpots1 |= (1ULL << position);
+	}
+	else {
+		openSpots2 |= (1ULL << (position - 64));
 	}
 	bigBox = (int)(position / 9); // translate integer move position to player notation for big box
 	smallBox = position % 9;	   // translate integer move position to player notation for small box
 	std::cout << "Move " << (turn + 1) << ": " << player << " [ " << bigBox << ", " << smallBox << "]" << std::endl; // Print move to log in player notation
-
-
+	turn += 1;
 }
+
 
 int main () {
 	Board board;
 	board.MakeMove(0);
 	board.MakeMove(62);
+	board.MakeMove(62);
 	board.MakeMove(63);
+	board.MakeMove(64);
 	board.MakeMove(80);
+	board.MakeMove(81);
 	board.MakeMove(100);
 
 }
