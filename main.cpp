@@ -37,21 +37,38 @@ Board::Board() {
 	smallBox = 5;
 }
 void Board::MakeMove(int position) {
-	bigBox = (int)(position / 9);
-	smallBox = position % 9;
-	if (turn % 2 == 0) {
+	if (position < 0 || position > 80) { // check if legal move
+		std::cout << "Please input valid move" << std::endl;
+	} else if (turn % 2 == 0) { // check move parity; player X move sequence
+		if (position <= 62) { // check for first half of board
+			xBoard1 |= (1ULL << position);
+		} else {
+			xBoard2 |= (1ULL << (position - 63));
+		}
 		player = 'X';
-	}
-	else {
+	} else {
+		if (position <= 62) { // check for first half of board
+			oBoard1 |= (1ULL << position);
+		}
+		else {
+			oBoard2 |= (1ULL << (position - 63));
+		}
 		player = 'O';
 	}
-	std::cout << "Move " << (turn + 1) << ": " << player << "[ " << bigBox << ", " << smallBox << "]" << std::endl;
+	bigBox = (int)(position / 9); // translate integer move position to player notation for big box
+	smallBox = position % 9;	   // translate integer move position to player notation for small box
+	std::cout << "Move " << (turn + 1) << ": " << player << " [ " << bigBox << ", " << smallBox << "]" << std::endl; // Print move to log in player notation
 
 
 }
 
 int main () {
 	Board board;
+	board.MakeMove(0);
+	board.MakeMove(62);
+	board.MakeMove(63);
+	board.MakeMove(80);
+	board.MakeMove(100);
 
 }
 
