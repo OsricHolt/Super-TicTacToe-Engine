@@ -1,7 +1,9 @@
 #include "boardClass.h"
 
 Board::Board() {
-	// initialize all variables to 0
+	// initialize all variables
+	WIDTH = 800;
+	HEIGHT = 800;
 	xBoard1 = 0;
 	xBoard2 = 0;
 	oBoard1 = 0;

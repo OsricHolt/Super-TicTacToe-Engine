@@ -10,6 +10,8 @@
 class Board {
 public:
 	Board();
+	int WIDTH;
+	int HEIGHT;
 	Bitboard xBoard1; // X positions 0 - 62 of the board 
 	halfBitboard xBoard2; // X positions 63 - 89 of the board
 	Bitboard oBoard1; // O positions 0 - 62 of the board 
