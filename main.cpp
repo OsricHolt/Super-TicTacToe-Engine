@@ -19,7 +19,7 @@ static void mouseCallbackFunction(GLFWwindow* window, int button, int action, in
 
 	Board* board = static_cast<Board*>(glfwGetWindowUserPointer(window));
 
-
+	std::cout << xPos << " , " << yPos << std::endl;
 
 }
 
@@ -45,23 +45,6 @@ int main () {
 	// Define board dimensions
 	double halfWidth = board.WIDTH / 2.0f, halfHeight = board.HEIGHT / 2.0f;
 
-	// Create projection matrix to define window bounds in terms of width and height
-	glm::mat4 projection = glm::ortho(
-		-halfWidth, halfWidth,
-		-halfHeight, halfHeight,
-		-1.0, 1.0
-	);
-
-	// Apply Matrix?
-	glm::mat4 view = glm::mat4(1.0f);
-	glm::mat4 model = glm::mat4(1.0f);
-	glm::mat4 MVP = projection * view * model;
-
-	Shader shaderProgram("projectionMatrix.vert", "defalut.frag"); //
-	shaderProgram.Activate();
-
-	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "MVP");
-	glUniformMatrix4fv(uniID, 1, GL_FALSE, glm::value_ptr(MVP));
 
 
 	// create a window object with GLFW window datatype with a size of 800x800 pixels named "OpenGL Tutorial"
@@ -84,6 +67,25 @@ int main () {
 	// Specify the viewport of OpenGL in the Window
 	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
 	glViewport(0, 0, board.WIDTH, board.HEIGHT);
+
+// Create projection matrix to define window bounds in terms of width and height
+glm::mat4 projection = glm::ortho(
+	-halfWidth, halfWidth,
+	-halfHeight, halfHeight,
+	-1.0, 1.0
+);
+
+// Apply Matrix?
+glm::mat4 view = glm::mat4(1.0f); // object transformation set as identity
+glm::mat4 model = glm::mat4(1.0f); // camera transformation set as identity
+glm::mat4 MVP = projection * view * model;
+
+Shader shaderProgram("projectionMatrix.vert", "fragmentTest.frag"); //
+shaderProgram.Activate();
+
+GLuint uniMVP = glGetUniformLocation(shaderProgram.ID, "MVP");
+glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(MVP));
+
 
 	// Specify the color of the background
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
