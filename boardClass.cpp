@@ -15,6 +15,8 @@ Board::Board() {
 	player = 'X';
 	bigBox = 5;
 	smallBox = 5;
+	mouseX = 0;
+	mouseY = 0;
 }
 bool Board::IsLegalMove(int position) {
 	if (position < 0 || position > 80) {

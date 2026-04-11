@@ -10,6 +10,21 @@
 #include "boardClass.h"
 #include "shaderClass.h"
 
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
+
+
+
+static void cursorCallbackFunction(GLFWwindow* window, double xPos, double yPos) {
+
+	Board* board = static_cast<Board*>(glfwGetWindowUserPointer(window));
+
+	board->mouseX = (float)xPos - board->WIDTH / 2.0f;
+	board->mouseY = board->HEIGHT / 2.0f - (float)yPos;
+
+	std::cout << board->mouseX << " , " << board->mouseY << std::endl;
+}
 
 static void mouseCallbackFunction(GLFWwindow* window, int button, int action, int mods) {
 	if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
@@ -19,13 +34,30 @@ static void mouseCallbackFunction(GLFWwindow* window, int button, int action, in
 
 	Board* board = static_cast<Board*>(glfwGetWindowUserPointer(window));
 
-	std::cout << xPos << " , " << yPos << std::endl;
+	float xPosAdj = (float) xPos - board->WIDTH / 2.0f;
+	float yPosAdj = board->HEIGHT / 2.0f - (float) yPos;
+
+	std::cout << xPosAdj << " , " << yPosAdj << std::endl;
 
 }
+
+
 
 // Initialize the board and member variables
 Board board;
 
+// Vertex array for rendering X's
+GLfloat xVertices[] = {
+	0.0f, -board.HEIGHT / 4.0f, board.WIDTH / 4.0f, 0.0f , 3 * board.WIDTH / 4.0f, -board.HEIGHT, board.WIDTH, -3 * board.HEIGHT / 4.0f,
+	0.0f, -3 * board.HEIGHT / 4.0f, board.WIDTH / 4.0f, -board.HEIGHT, 3 * board.WIDTH / 4.0f, 0.0f, board.WIDTH, -board.HEIGHT / 4.0f
+};
+
+GLuint xIndices[] = {
+	0, 1, 2, // left half triangle box 1
+	1, 2, 3, // right half triangle box 1
+	4, 5, 6, // left half triangle box 2
+	5, 6, 7  // right half triangle box 2
+};
 
 
 int main () {
@@ -51,6 +83,7 @@ int main () {
 	GLFWwindow* window = glfwCreateWindow(board.WIDTH, board.HEIGHT, "Super Tic Tac Toe", NULL, NULL); // datatype* (width, height, name, fullscreen?, not important)
 
 	glfwSetWindowUserPointer(window, &board);
+	glfwSetCursorPosCallback(window, cursorCallbackFunction);
 	glfwSetMouseButtonCallback(window, mouseCallbackFunction);
 
 	//check to see if the window had an error generating (and if it does close it)
@@ -80,12 +113,26 @@ glm::mat4 view = glm::mat4(1.0f); // object transformation set as identity
 glm::mat4 model = glm::mat4(1.0f); // camera transformation set as identity
 glm::mat4 MVP = projection * view * model;
 
-Shader shaderProgram("projectionMatrix.vert", "fragmentTest.frag"); //
+Shader shaderProgram("projection.vert", "fragmentTest.frag"); //
 shaderProgram.Activate();
 
 GLuint uniMVP = glGetUniformLocation(shaderProgram.ID, "MVP");
 glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(MVP));
 
+// Generate Vertex array and bind it
+VAO VAOx;
+VAOx.Bind();
+
+//Generates VBO and links it to xVertices
+VBO VBOx(xVertices, sizeof(xVertices));
+//Generates EBO and links it to indices
+EBO EBOx(xIndices, sizeof(xIndices));
+
+VAOx.LinkAttrib(VBOx, 0, 2, GL_FLOAT, 2 * sizeof(float), (void*)0);
+
+VAOx.Unbind();
+VBOx.Unbind();
+EBOx.Unbind();
 
 	// Specify the color of the background
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -107,6 +154,10 @@ glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(MVP));
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
+		VAOx.Bind();
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+
+		glfwSwapBuffers(window);
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}

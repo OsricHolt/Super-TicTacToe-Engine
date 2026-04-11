@@ -25,6 +25,7 @@ public:
 	int smallBox;
 	void MakeMove(int position);
 	bool IsLegalMove(int position);
+	float mouseX, mouseY;
 };
 
 #endif
