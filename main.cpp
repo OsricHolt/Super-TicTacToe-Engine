@@ -23,7 +23,7 @@ static void cursorCallbackFunction(GLFWwindow* window, double xPos, double yPos)
 	board->mouseX = (float)xPos - board->WIDTH / 2.0f;
 	board->mouseY = board->HEIGHT / 2.0f - (float)yPos;
 
-	std::cout << board->mouseX << " , " << board->mouseY << std::endl;
+	//std::cout << board->mouseX << " , " << board->mouseY << std::endl;
 }
 
 static void mouseCallbackFunction(GLFWwindow* window, int button, int action, int mods) {
@@ -37,7 +37,13 @@ static void mouseCallbackFunction(GLFWwindow* window, int button, int action, in
 	float xPosAdj = (float) xPos - board->WIDTH / 2.0f;
 	float yPosAdj = board->HEIGHT / 2.0f - (float) yPos;
 
-	std::cout << xPosAdj << " , " << yPosAdj << std::endl;
+	int gridxPos = 9 * xPos / board->WIDTH;
+	int gridyPos = 9 * yPos / board->HEIGHT;
+
+	int position = gridxPos + 6 * (int)(gridxPos / 3) + 3 * gridyPos;
+
+	std::cout << gridxPos << " , " << gridyPos << std::endl;
+	std::cout << position << std::endl;
 
 }
 
@@ -48,8 +54,8 @@ Board board;
 
 // Vertex array for rendering X's
 GLfloat xVertices[] = {
-	0.0f, -board.HEIGHT / 4.0f, board.WIDTH / 4.0f, 0.0f , 3 * board.WIDTH / 4.0f, -board.HEIGHT, board.WIDTH, -3 * board.HEIGHT / 4.0f,
-	0.0f, -3 * board.HEIGHT / 4.0f, board.WIDTH / 4.0f, -board.HEIGHT, 3 * board.WIDTH / 4.0f, 0.0f, board.WIDTH, -board.HEIGHT / 4.0f
+	- board.WIDTH / 18.0f, board.HEIGHT / 36.0f, - board.WIDTH / 36.0f, board.HEIGHT / 18.0f , board.WIDTH / 36.0f, -board.HEIGHT / 18.0f, board.WIDTH / 18.0f, -board.HEIGHT / 36.0f,
+	-board.WIDTH / 18.0f, -board.HEIGHT / 36.0f, -board.WIDTH / 36.0f, -board.HEIGHT / 18.0f, board.WIDTH / 36.0f, board.HEIGHT / 18.0f, board.WIDTH / 18.0f, board.HEIGHT / 36.0f
 };
 
 GLuint xIndices[] = {
