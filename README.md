@@ -5,11 +5,11 @@ Coding a Super Tic-Tac-Toe game engine to best my students every. single. time.
 ## Progress
 
 ### Roadmap and Features:
-- [ ] Generating the board
-- [ ] Placing pieces
-- [ ] Move restrictions
+- [X] Generating the board
+- [X] Placing pieces
+- [X] Move restrictions
 - [ ] Win detection
-- [ ] Encode piece positions
+- [X] Encode piece positions
 - [ ] Branch generation
 - [ ] Minimax implementation
 - [ ] alpha-beta trimming
