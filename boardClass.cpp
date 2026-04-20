@@ -17,6 +17,14 @@ Board::Board() {
 	smallBox = 5;
 	mouseX = 0;
 	mouseY = 0;
+	xPieceShift = 0;
+	yPieceShift = 0;
+	VAOx = nullptr;
+	VAOo = nullptr;
+	xShapeIndex = 0;
+	oShapeIndex = 0;
+	movePositionShiftUni = 0;
+
 }
 bool Board::IsLegalMove(int position) {
 	if (position < 0 || position > 80) {
@@ -66,6 +74,18 @@ void Board::MakeMove(int position) {
 	}
 	bigBox = (int)(position / 9); // translate integer move position to player notation for big box
 	smallBox = position % 9;	   // translate integer move position to player notation for small box
+	xPieceShift = WIDTH * ((bigBox % 3) / 3.0f + (smallBox % 3) / 9.0f);
+	yPieceShift = -HEIGHT * ((int)(bigBox / 3) / 3.0f + (int)(smallBox / 3) / 9.0f);
+	//std::cout << xPieceShift << " , " << yPieceShift << std::endl;
+	glUniform2f(movePositionShiftUni, xPieceShift, yPieceShift);
+
+	if (player == 'X') {
+		renderPiece(*VAOx, xShapeIndex);
+	}
+	else if (player == 'O') {
+		renderPiece(*VAOo, oShapeIndex);
+	}
+
 	std::ofstream gameLog;
 	gameLog.open("Games/game.txt", std::ios::app);
 	gameLog << "Move " << (turn + 1) << ": " << player << " [ " << bigBox << ", " << smallBox << "]\n"; // Print move to log in player notation
@@ -73,3 +93,13 @@ void Board::MakeMove(int position) {
 	turn += 1;
 }
 
+void Board::renderPiece(VAO VAO, int shapeIndex) {
+	VAO.Bind();
+
+	GLint ebo = 0;
+	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ebo);
+
+	if (ebo != 0) glDrawElements(GL_TRIANGLES, shapeIndex, GL_UNSIGNED_INT, 0);
+	else glDrawArrays(GL_TRIANGLE_STRIP, 0, shapeIndex);
+	VAO.Unbind();
+}

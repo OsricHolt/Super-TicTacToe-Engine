@@ -6,6 +6,10 @@
 #include <string>
 
 #include "types.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
+
 
 class Board {
 public:
@@ -24,8 +28,16 @@ public:
 	int bigBox;
 	int smallBox;
 	void MakeMove(int position);
+	void renderPiece(VAO VAO, int shapeIndex);
 	bool IsLegalMove(int position);
 	float mouseX, mouseY;
+	float xPieceShift, yPieceShift;
+	VAO* VAOx;
+	VAO* VAOo;
+	int xShapeIndex;
+	int oShapeIndex;
+	GLuint movePositionShiftUni;
+
 };
 
 #endif

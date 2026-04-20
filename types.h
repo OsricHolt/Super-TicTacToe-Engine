@@ -8,5 +8,9 @@
 typedef uint64_t Bitboard;
 typedef uint32_t halfBitboard;
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 
 #endif
