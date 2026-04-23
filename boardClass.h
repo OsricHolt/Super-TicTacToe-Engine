@@ -16,20 +16,18 @@ public:
 	Board();
 	int WIDTH;
 	int HEIGHT;
-	Bitboard xBoard1; // X positions 0 - 62 of the board 
-	halfBitboard xBoard2; // X positions 63 - 89 of the board
-	Bitboard oBoard1; // O positions 0 - 62 of the board 
-	halfBitboard oBoard2; // O positions 63 - 89 of the board
-	Bitboard openSpots1; // free spots positions 0 - 62 of the board
-	halfBitboard openSpots2; // free spots positions 63 - 89 of the board
+	Bitboard xBoard;
+	Bitboard oBoard;
 	int turn;
 	bool freeMove; // free move?
 	char player;
 	int bigBox;
 	int smallBox;
+	DecodedMove decodeMove(int position);
 	void MakeMove(int position);
 	void renderPiece(VAO VAO, int shapeIndex);
 	bool IsLegalMove(int position);
+	Bitboard GetLegalMoves();
 	float mouseX, mouseY;
 	float xPieceShift, yPieceShift;
 	VAO* VAOx;

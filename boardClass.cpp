@@ -4,12 +4,8 @@ Board::Board() {
 	// initialize all variables
 	WIDTH = 800;
 	HEIGHT = 800;
-	xBoard1 = 0;
-	xBoard2 = 0;
-	oBoard1 = 0;
-	oBoard2 = 0;
-	openSpots1 = 0;
-	openSpots2 = 0;
+	xBoard = { 0, 0 };
+	oBoard = { 0, 0 };
 	turn = 0;
 	freeMove = true;
 	player = 'X';
@@ -26,52 +22,47 @@ Board::Board() {
 	movePositionShiftUni = 0;
 
 }
-bool Board::IsLegalMove(int position) {
-	if (position < 0 || position > 80) {
-		return false;
-	}
-	if (position <= 63) {
-		if ((1ULL << position) & openSpots1) {
-			return false;
-		}
-	}
-	else {
-		if ((1ULL << (position - 64)) & openSpots2) {
-			return false;
-		}
-	}
-	return true;
+
+DecodedMove Board::decodeMove(int position) {
+	DecodedMove decodeValues = { (position >> 6), (position & 63)};
+	return decodeValues;
 }
+bool Board::IsLegalMove(int position) {
+	Bitboard legalMoves = GetLegalMoves();
+	DecodedMove decodeValues = decodeMove(position);
+	if (decodeValues.boardHalf > 1) return false; // check if position is on the bitboard
+	uint64_t legalHalf = (decodeValues.boardHalf == 0) // fix the right half of the board
+		? legalMoves.low
+		: legalMoves.high;
+	return (legalHalf & (1ULL << decodeValues.moveIndex)) != 0; // check to see if the move is legal
+	return false;
+	}
+
+Bitboard Board::GetLegalMoves() {
+	Bitboard legalMoves = {0, 0};
+	legalMoves.low = ~(xBoard.low | oBoard.low) & VALID_SPACES.low; // complement of all taken spaces and limited to spaces on the board for first half of board
+	legalMoves.high = ~(xBoard.high | oBoard.high) & VALID_SPACES.high; // complement of all taken spaces and limited to spaces on the board for second half of board
+	return legalMoves;
+}
+
 void Board::MakeMove(int position) {
 	//		Check if move is on board	//		Check if the position is in the first bitmap and if it is open // check if the second bit map is open
 	if (!IsLegalMove(position)) { // check if legal move
 		std::cout << "Please input valid move" << std::endl;
 		return;
 	}
-	if (turn % 2 == 0) { // check move parity; player X move sequence
-		if (position <= 63) { // check for first half of board
-			xBoard1 |= (1ULL << position);
-		}
-		else {
-			xBoard2 |= (1ULL << (position - 64));
-		}
-		player = 'X';
-	}
-	else {
-		if (position <= 63) { // check for first half of board
-			oBoard1 |= (1ULL << position);
-		}
-		else {
-			oBoard2 |= (1ULL << (position - 64));
-		}
-		player = 'O';
-	}
-	if (position <= 63) { // check for first half of board
-		openSpots1 |= (1ULL << position);
-	}
-	else {
-		openSpots2 |= (1ULL << (position - 64));
-	}
+	DecodedMove decodeValues = decodeMove(position); // translate position into board half and move index
+	player = (turn & 1)
+		? 'X'
+		: 'O';
+	Bitboard* playerBoard = (turn & 1)
+		? &xBoard
+		: &oBoard;
+	uint64_t* halfBoard = (decodeValues.boardHalf == 0) // fix the right half of the board
+		? &playerBoard->low
+		: &playerBoard->high;
+	*halfBoard |= (1ULL << decodeValues.moveIndex);
+
 	bigBox = (int)(position / 9); // translate integer move position to player notation for big box
 	smallBox = position % 9;	   // translate integer move position to player notation for small box
 	xPieceShift = WIDTH * ((bigBox % 3) / 3.0f + (smallBox % 3) / 9.0f);

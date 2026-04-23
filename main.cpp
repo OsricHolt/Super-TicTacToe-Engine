@@ -14,6 +14,25 @@
 #include "VBO.h"
 #include "EBO.h"
 
+void renderGameState(Board board, VAO VAOx, VAO VAOo) {
+	// check X-board
+	// render X's
+	// check O-board
+	// render O's
+	// render board
+	return;
+}
+
+//void Board::renderPiece(VAO VAO, int shapeIndex) {
+//	VAO.Bind();
+//
+//	GLint ebo = 0;
+//	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ebo);
+//
+//	if (ebo != 0) glDrawElements(GL_TRIANGLES, shapeIndex, GL_UNSIGNED_INT, 0); // draw and X
+//	else glDrawArrays(GL_TRIANGLE_STRIP, 0, shapeIndex); // draw and O
+//	VAO.Unbind();
+//}
 
 
 static void cursorCallbackFunction(GLFWwindow* window, double xPos, double yPos) {
