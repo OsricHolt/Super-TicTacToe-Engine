@@ -14,9 +14,81 @@
 #include "VBO.h"
 #include "EBO.h"
 
-void renderGameState(Board board, VAO VAOx, VAO VAOo) {
-	// check X-board
-	// render X's
+
+
+void renderPiece(VAO VAO, int shapeIndex) {
+	VAO.Bind();
+
+	GLint ebo = 0;
+	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ebo);
+
+	if (ebo != 0) glDrawElements(GL_TRIANGLES, shapeIndex, GL_UNSIGNED_INT, 0);
+	else glDrawArrays(GL_TRIANGLE_STRIP, 0, shapeIndex);
+	VAO.Unbind();
+}
+
+void renderGameState(Board board, VAO VAOx, VAO VAOo, GLuint movePositionShiftUni) {
+	Bitboard xBoard = board.xBoard; // copy of the X bitboard
+	Bitboard oBoard = board.oBoard; // copy of the O bitboard
+	int leastSiginificanBit = 0;
+	int piecePosition = 0;
+	float xPieceShift = 0.0f;
+	float yPieceShift = 0.0f;
+	uint64_t* boardCopy = nullptr;
+	int positionOffset = 0;
+
+	// takes the position and translates it into piece position offset for rendering
+	//								Big Box	(sort of)									Small Box (sort of)
+	xPieceShift = board.WIDTH * (((piecePosition / 9) % 3) / 3.0f + (piecePosition % 3) / 9.0f); 
+	yPieceShift = -board.HEIGHT * ((piecePosition / 27) / 3.0f + ((piecePosition % 9) / 3) / 9.0f);
+
+	while (xBoard.low || xBoard.high || oBoard.low || oBoard.high != 0) {
+		if (xBoard.low || xBoard.high != 0) {
+			boardCopy = (xBoard.low != 0) ? &xBoard.low : &xBoard.high;
+			positionOffset = (xBoard.low != 0) ? 0 : 64;
+
+			while (*boardCopy) {
+				piecePosition = positionOffset + ctz64(*boardCopy); // counts the trailing zeros, aka. the position of the lowest significant bit
+
+				// takes the position and translates it into piece position offset for rendering
+				//								Big Box										Small Box
+				xPieceShift = board.WIDTH * ((((int)(piecePosition / 9)) % 3) / 3.0f + (piecePosition % 3) / 9.0f);
+				yPieceShift = -board.HEIGHT * ((int)(((int)(piecePosition / 9)) / 3) / 3.0f + (int)((piecePosition % 9) / 3) / 9.0f);
+
+				// render X piece at position
+				glUniform2f(movePositionShiftUni, xPieceShift, yPieceShift); // set shader uniform to proper offset
+				VAOx.Bind();
+				glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+				VAOx.Unbind();
+				(*boardCopy) &= (*boardCopy) - 1; // flips position bit to zero and all others to one and then and's them aka. clears least signifcant bit
+			}
+		}
+		else {
+			boardCopy = (oBoard.low != 0) ? &oBoard.low : &oBoard.high;
+			positionOffset = (oBoard.low != 0) ? 0 : 64;
+
+			while (*boardCopy) {
+				piecePosition = positionOffset + ctz64(*boardCopy); // counts the trailing zeros, aka. the position of the lowest significant bit
+
+				// takes the position and translates it into piece position offset for rendering
+				//								Big Box										Small Box
+				xPieceShift = board.WIDTH * ((((int)(piecePosition / 9)) % 3) / 3.0f + (piecePosition % 3) / 9.0f);
+				yPieceShift = -board.HEIGHT * ((int)(((int)(piecePosition / 9)) / 3) / 3.0f + (int)((piecePosition % 9) / 3) / 9.0f);
+
+				// render X piece at position
+				glUniform2f(movePositionShiftUni, xPieceShift, yPieceShift); // set shader uniform to proper offset
+				VAOo.Bind();
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 82);
+				VAOo.Unbind();
+				(*boardCopy) &= (*boardCopy) - 1; // flips position bit to zero and all others to one and then and's them aka. clears least signifcant bit
+			}
+
+		}
+
+	}
+
+
+
 	// check O-board
 	// render O's
 	// render board
@@ -60,7 +132,7 @@ static void mouseCallbackFunction(GLFWwindow* window, int button, int action, in
 	int gridyPos = 9 * yPos / board->HEIGHT;
 
 	int position = gridxPos + 6 * (int)(gridxPos / 3) + 3 * gridyPos + 18 * (int)(gridyPos/3);
-
+	board->position = position;
 	board->MakeMove(position);
 
 	std::cout << gridxPos << " , " << gridyPos << std::endl;
@@ -230,6 +302,9 @@ VBOo.Unbind();
 		//glDrawArrays(GL_TRIANGLE_STRIP, 0, (SEGMENTS + 1) * 2);
 		//glUniform2f(movePositionShiftUni, board.xPieceShift, board.yPieceShift);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		renderGameState(board, VAOx, VAOo, movePositionShiftUni);
+
 
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events

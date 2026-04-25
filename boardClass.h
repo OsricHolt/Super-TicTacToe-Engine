@@ -23,11 +23,13 @@ public:
 	char player;
 	int bigBox;
 	int smallBox;
+	int position;
 	DecodedMove decodeMove(int position);
 	void MakeMove(int position);
 	void renderPiece(VAO VAO, int shapeIndex);
-	bool IsLegalMove(int position);
-	Bitboard GetLegalMoves();
+	bool isLegalMove(int position);
+	Bitboard getLegalMoves();
+	void logMove(int position);
 	float mouseX, mouseY;
 	float xPieceShift, yPieceShift;
 	VAO* VAOx;
