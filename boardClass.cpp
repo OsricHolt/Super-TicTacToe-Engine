@@ -53,12 +53,12 @@ void Board::MakeMove(int position) {
 		return;
 	}
 	DecodedMove decodeValues = decodeMove(position); // translate position into board half and move index
-	player = (turn & 1) // fix the active player's name
-		? 'X'
-		: 'O';
+	player = (turn & 1) // fix the active player's name (conditdion is backwards because
+		? 'O'
+		: 'X';
 	Bitboard* playerBoard = (turn & 1) // fix the active player's board
-		? &xBoard
-		: &oBoard;
+		? &oBoard
+		: &xBoard;
 	uint64_t* halfBoard = (decodeValues.boardHalf == 0) // fix the right half of the board
 		? &playerBoard->low
 		: &playerBoard->high;

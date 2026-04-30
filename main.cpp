@@ -27,7 +27,7 @@ void renderPiece(VAO VAO, int shapeIndex) {
 	VAO.Unbind();
 }
 
-void renderGameState(Board board, VAO VAOx, VAO VAOo, GLuint movePositionShiftUni) {
+void renderGameState(Board board, VAO VAOx, VAO VAOo, VAO VAOgrid, GLuint movePositionShiftUni, GLuint pieceColorUni) {
 	Bitboard xBoard = board.xBoard; // copy of the X bitboard
 	Bitboard oBoard = board.oBoard; // copy of the O bitboard
 	int leastSiginificanBit = 0;
@@ -36,16 +36,25 @@ void renderGameState(Board board, VAO VAOx, VAO VAOo, GLuint movePositionShiftUn
 	float yPieceShift = 0.0f;
 	uint64_t* boardCopy = nullptr;
 	int positionOffset = 0;
+	glUniform2f(movePositionShiftUni, xPieceShift, yPieceShift); // set shader uniform to proper offset
+	glUniform4f(pieceColorUni, 0.9f, 0.9f, 0.9f, 1.0f); // set the fiece color to red
 
 	// takes the position and translates it into piece position offset for rendering
 	//								Big Box	(sort of)									Small Box (sort of)
-	xPieceShift = board.WIDTH * (((piecePosition / 9) % 3) / 3.0f + (piecePosition % 3) / 9.0f); 
-	yPieceShift = -board.HEIGHT * ((piecePosition / 27) / 3.0f + ((piecePosition % 9) / 3) / 9.0f);
+	//xPieceShift = board.WIDTH * (((piecePosition / 9) % 3) / 3.0f + (piecePosition % 3) / 9.0f); 
+	//yPieceShift = -board.HEIGHT * ((piecePosition / 27) / 3.0f + ((piecePosition % 9) / 3) / 9.0f);
 
-	while (xBoard.low || xBoard.high || oBoard.low || oBoard.high != 0) {
-		if (xBoard.low || xBoard.high != 0) {
-			boardCopy = (xBoard.low != 0) ? &xBoard.low : &xBoard.high;
-			positionOffset = (xBoard.low != 0) ? 0 : 64;
+	// draw the grids (board)
+	VAOgrid.Bind();
+	glDrawArrays(GL_LINES, 0, 8);
+	VAOgrid.Unbind();
+
+
+	while (xBoard.low || xBoard.high || oBoard.low || oBoard.high != 0) { // check to see if all the pieces are rendered
+		if (xBoard.low || xBoard.high != 0) { // check for X pieces
+			boardCopy = (xBoard.low != 0) ? &xBoard.low : &xBoard.high; // set correct bitboard half
+			positionOffset = (xBoard.low != 0) ? 0 : 64; // position offset to account for index not matching position number
+			glUniform4f(pieceColorUni, 0.9f, 0.0f, 0.0f, 1.0f); // set the fiece color to red
 
 			while (*boardCopy) {
 				piecePosition = positionOffset + ctz64(*boardCopy); // counts the trailing zeros, aka. the position of the lowest significant bit
@@ -66,6 +75,8 @@ void renderGameState(Board board, VAO VAOx, VAO VAOo, GLuint movePositionShiftUn
 		else {
 			boardCopy = (oBoard.low != 0) ? &oBoard.low : &oBoard.high;
 			positionOffset = (oBoard.low != 0) ? 0 : 64;
+			glUniform4f(pieceColorUni, 0.0f, 0.0f, 0.9f, 1.0f); // set the fiece color to red
+
 
 			while (*boardCopy) {
 				piecePosition = positionOffset + ctz64(*boardCopy); // counts the trailing zeros, aka. the position of the lowest significant bit
@@ -150,13 +161,16 @@ const int VERT_COUNT = (SEGMENTS + 1) * 2; // number of vertices; segments + 1 b
 float outerRadius = board.WIDTH / 18.0f;
 float innerRadius = board.WIDTH / 36.0f;
 
+GLfloat gridVertices[] = {
+	- board.WIDTH / 6.0f, board.HEIGHT / 2.0f, -board.WIDTH / 6.0f, - board.HEIGHT / 2.0f, board.WIDTH / 6.0f, board.HEIGHT / 2.0f, board.WIDTH / 6.0f, -board.HEIGHT / 2.0f,
+	-board.WIDTH / 2.0f, board.HEIGHT / 6.0f, board.WIDTH / 2.0f, board.HEIGHT / 6.0f, -board.WIDTH / 2.0f, -board.HEIGHT / 6.0f, board.WIDTH / 2.0f, -board.HEIGHT / 6.0f,
+};
+
 // Vertex array for rendering X's
 GLfloat xVertices[] = {
 	-9 * board.WIDTH / 18.0f , 17 * board.HEIGHT / 36.0f, -17 * board.WIDTH / 36.0f, 9 * board.HEIGHT / 18.0f, -15 * board.WIDTH / 36.0f, 7 * board.HEIGHT / 18.0f, - 7 * board.WIDTH / 18.0f, 15 * board.HEIGHT / 36.0f,
 	-9 * board.WIDTH / 18.0f , 15 * board.HEIGHT / 36.0f, -17 * board.WIDTH / 36.0f, 7 * board.HEIGHT / 18.0f, -15 * board.WIDTH / 36.0f, 9 * board.HEIGHT / 18.0f, - 7 * board.WIDTH / 18.0f, 17 * board.HEIGHT / 36.0f
 };
-
-
 
 GLuint xIndices[] = {
 	0, 1, 2, // left half triangle box 1
@@ -253,10 +267,13 @@ GLuint movePositionShiftUni = glGetUniformLocation(shaderProgram.ID, "movePositi
 board.movePositionShiftUni = movePositionShiftUni;
 glUniform2f(movePositionShiftUni, board.xPieceShift, board.yPieceShift);
 
+GLuint pieceColorUni = glGetUniformLocation(shaderProgram.ID, "pieceColor");
+glUniform4f(pieceColorUni, 0.9f, 0.0f, 0.0f, 1.0f);
+
 
 // Generate Vertex array  for X-piece and bind it
 VAO VAOx;
-board.VAOx = &VAOx;
+//board.VAOx = &VAOx;
 VAOx.Bind();
 
 //Generates VBO and links it to xVertices
@@ -272,7 +289,7 @@ EBOx.Unbind();
 
 // Generate Vertex array for O-piece and bind it
 VAO VAOo;
-board.VAOo = &VAOo;
+//board.VAOo = &VAOo;
 VAOo.Bind();
 
 //Generates VBO and links it to xVertices
@@ -284,6 +301,22 @@ VAOo.LinkAttrib(VBOo, 0, 2, GL_FLOAT, 2 * sizeof(float), (void*)0);
 
 VAOo.Unbind();
 VBOo.Unbind();
+
+// Generate Vertex array for board grid and bind it
+VAO VAOgrid;
+//board.VAOgrid = &VAOgrid;
+VAOgrid.Bind();
+
+//Generates VBO and links it to xVertices
+VBO VBOgrid(gridVertices, sizeof(gridVertices));
+////Generates EBO and links it to indices
+//EBO EBOo(xIndices, sizeof(xIndices));
+
+VAOgrid.LinkAttrib(VBOgrid, 0, 2, GL_FLOAT, 2 * sizeof(float), (void*)0);
+
+VAOgrid.Unbind();
+VBOgrid.Unbind();
+
 
 	// Specify the color of the background
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -303,8 +336,7 @@ VBOo.Unbind();
 		//glUniform2f(movePositionShiftUni, board.xPieceShift, board.yPieceShift);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		renderGameState(board, VAOx, VAOo, movePositionShiftUni);
-
+		renderGameState(board, VAOx, VAOo, VAOgrid, movePositionShiftUni, pieceColorUni);
 
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
