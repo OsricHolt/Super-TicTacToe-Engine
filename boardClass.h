@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <bitset>
 
 #include "types.h"
 #include "VAO.h"
@@ -18,6 +19,8 @@ public:
 	int HEIGHT;
 	Bitboard xBoard;
 	Bitboard oBoard;
+	smallBitboard xBoardBig;
+	smallBitboard oBoardBig;
 	int turn;
 	bool freeMove; // free move?
 	char player;
@@ -25,11 +28,12 @@ public:
 	int smallBox;
 	int position;
 	DecodedMove decodeMove(int position);
-	void MakeMove(int position);
+	void makeMove(int position);
 	void renderPiece(VAO VAO, int shapeIndex);
 	bool isLegalMove(int position);
 	Bitboard getLegalMoves();
 	void logMove(int position);
+	void checkWin(Bitboard& pieceBoard, smallBitboard& pieceBoardBig);
 	float mouseX, mouseY;
 	float xPieceShift, yPieceShift;
 	VAO* VAOx;

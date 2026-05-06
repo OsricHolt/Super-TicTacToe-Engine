@@ -6,6 +6,8 @@ Board::Board() {
 	HEIGHT = 800;
 	xBoard = { 0, 0 };
 	oBoard = { 0, 0 };
+	xBoardBig = 0;
+	oBoardBig = 0;
 	turn = 0;
 	freeMove = true;
 	player = 'X';
@@ -46,7 +48,7 @@ Bitboard Board::getLegalMoves() {
 	return legalMoves;
 }
 
-void Board::MakeMove(int position) {
+void Board::makeMove(int position) {
 	//		Check if move is on board	//		Check if the position is in the first bitmap and if it is open // check if the second bit map is open
 	if (!isLegalMove(position)) { // check if legal move
 		std::cout << "Please input valid move" << std::endl;
@@ -56,15 +58,58 @@ void Board::MakeMove(int position) {
 	player = (turn & 1) // fix the active player's name (conditdion is backwards because
 		? 'O'
 		: 'X';
-	Bitboard* playerBoard = (turn & 1) // fix the active player's board
-		? &oBoard
-		: &xBoard;
-	uint64_t* halfBoard = (decodeValues.boardHalf == 0) // fix the right half of the board
-		? &playerBoard->low
-		: &playerBoard->high;
-	*halfBoard |= (1ULL << decodeValues.moveIndex); // occupy the active player's bitboard space with their move
+	Bitboard& playerBoard = (turn & 1) // fix the active player's board
+		? oBoard
+		: xBoard;
+	smallBitboard& playerBoardBig = (turn & 1) // fix the active player's board
+		? oBoardBig
+		: xBoardBig;
+	uint64_t& halfBoard = (decodeValues.boardHalf == 0) // fix the right half of the board
+		? playerBoard.low
+		: playerBoard.high;
+	halfBoard |= (1ULL << decodeValues.moveIndex); // occupy the active player's bitboard space with their move
 
+	checkWin(playerBoard, playerBoardBig);
 	turn += 1;
+}
+
+void Board::checkWin(Bitboard& pieceBoard, smallBitboard& pieceBoardBig) {
+	int position = 0;
+	uint16_t tempBoard = 0;
+	uint64_t halfBoard = 0;
+	int boardHalf = 0;
+	int bit = 0;
+	// store each subgrid in the temporary board
+	for (int i = 0; i < 9; i++) { // small grid index
+		if (pieceBoardBig & (1ULL << i)) continue; // checks to see if the box is already taken
+		// populate the temporary board for win checks
+		for (int j = 0; j < 9; j++) { // iterate over each small grid position
+			position = (i * 9) + j; // translate loops to position
+			boardHalf = position >> 6;
+			bit = position & 63;
+			halfBoard = (boardHalf == 0) ? pieceBoard.low : pieceBoard.high; // fix bitboard half
+			if (halfBoard & (1ULL << bit)) { // check if position bit is set
+				tempBoard |= (1 << j); // store flipped bit in small grid copy
+				}
+			//std::cout << tempBoard << std::endl;
+			//tempBoard &= (1 << 9) - 1;
+		}
+		// check for board win
+		// iterate over all winning positions
+		for (int k = 0; k < 8; k++) {
+			if ((tempBoard & WIN_MASKS[k]) == WIN_MASKS[k]) {
+				pieceBoardBig |= 1ULL << i; // set big box to won
+				std::cout << std::bitset<9>(pieceBoardBig) << std::endl;
+				break;
+			}
+		}
+		std::cout << tempBoard << std::endl;
+
+		tempBoard = 0;
+	}
+	// mask with 8 win arrays
+	// store box is taken if taken
+	//
 }
 
 void Board::logMove(int position) {
