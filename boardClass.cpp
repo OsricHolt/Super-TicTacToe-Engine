@@ -10,6 +10,7 @@ Board::Board() {
 	oBoardBig = 0;
 	turn = 0;
 	freeMove = true;
+	lastMove = 0;
 	player = 'X';
 	bigBox = 5;
 	smallBox = 5;
@@ -34,7 +35,13 @@ bool Board::isLegalMove(int position) {
 	Bitboard legalMoves = getLegalMoves();
 	DecodedMove decodeValues = decodeMove(position);
 	if (decodeValues.boardHalf > 1) return false; // check if position is on the bitboard
-	uint64_t legalHalf = (decodeValues.boardHalf == 0) // fix the right half of the board
+	if ((xBoardBig | oBoardBig) & (1 << (position / 9))) return false; // check if the big box to move in is taken
+	if ((position / 9) != (lastMove % 9)) { // check if current move big box matches old move big box
+		if (freeMove == false) {
+			return false;
+		}
+	}
+	uint64_t legalHalf = (decodeValues.boardHalf == 0) // fix the correct half of the board
 		? legalMoves.low
 		: legalMoves.high;
 	return (legalHalf & (1ULL << decodeValues.moveIndex)) != 0; // check to see if the move is legal
@@ -54,6 +61,7 @@ void Board::makeMove(int position) {
 		std::cout << "Please input valid move" << std::endl;
 		return;
 	}
+	freeMove = false;
 	DecodedMove decodeValues = decodeMove(position); // translate position into board half and move index
 	player = (turn & 1) // fix the active player's name (conditdion is backwards because
 		? 'O'
@@ -70,6 +78,8 @@ void Board::makeMove(int position) {
 	halfBoard |= (1ULL << decodeValues.moveIndex); // occupy the active player's bitboard space with their move
 
 	checkWin(playerBoard, playerBoardBig);
+	if ((xBoardBig | oBoardBig) & (1 << (position % 9))) freeMove = true; // check if the big box to move in is taken
+	lastMove = position;
 	turn += 1;
 }
 

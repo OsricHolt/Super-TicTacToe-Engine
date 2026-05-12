@@ -23,6 +23,7 @@ public:
 	smallBitboard oBoardBig;
 	int turn;
 	bool freeMove; // free move?
+	int lastMove;
 	char player;
 	int bigBox;
 	int smallBox;

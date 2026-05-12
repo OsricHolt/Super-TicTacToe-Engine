@@ -30,6 +30,8 @@ void renderPiece(VAO VAO, int shapeIndex) {
 void renderGameState(Board board, VAO VAOx, VAO VAOo, VAO VAOgrid, GLuint movePositionShiftUni, GLuint pieceColorUni, GLuint scaleUni) {
 	Bitboard xBoard = board.xBoard; // copy of the X bitboard
 	Bitboard oBoard = board.oBoard; // copy of the O bitboard
+	smallBitboard xBoardBig = board.xBoardBig;
+	smallBitboard oBoardBig = board.oBoardBig;
 	int leastSiginificanBit = 0;
 	int piecePosition = 0;
 	float xPieceShift = 0.0f;
@@ -58,8 +60,8 @@ void renderGameState(Board board, VAO VAOx, VAO VAOo, VAO VAOgrid, GLuint movePo
 	}
 
 	// draw the big grid
-	xPieceShift = board.WIDTH / 3.0f;
-	yPieceShift = -board.HEIGHT / 3.0f;
+	xPieceShift = board.WIDTH; // width / 3 * scale
+	yPieceShift = -board.HEIGHT; // height / 3 * scale
 	glUniform2f(movePositionShiftUni, xPieceShift, yPieceShift);
 	glUniform1f(scaleUni, 3.0f);
 	glUniform4f(pieceColorUni, 9.0f, 0.9f, 0.9f, 1.0f); // set the fiece color to red
@@ -73,7 +75,7 @@ void renderGameState(Board board, VAO VAOx, VAO VAOo, VAO VAOgrid, GLuint movePo
 		if (xBoard.low || xBoard.high != 0) { // check for X pieces
 			boardCopy = (xBoard.low != 0) ? &xBoard.low : &xBoard.high; // set correct bitboard half
 			positionOffset = (xBoard.low != 0) ? 0 : 64; // position offset to account for index not matching position number
-			glUniform4f(pieceColorUni, 0.9f, 0.0f, 0.0f, 1.0f); // set the fiece color to red
+			glUniform4f(pieceColorUni, 0.9f, 0.0f, 0.0f, 1.0f); // set the piece color to red
 
 			while (*boardCopy) {
 				piecePosition = positionOffset + ctz64(*boardCopy); // counts the trailing zeros, aka. the position of the lowest significant bit
@@ -112,12 +114,32 @@ void renderGameState(Board board, VAO VAOx, VAO VAOo, VAO VAOgrid, GLuint movePo
 				VAOo.Unbind();
 				(*boardCopy) &= (*boardCopy) - 1; // flips position bit to zero and all others to one and then and's them aka. clears least signifcant bit
 			}
-
 		}
-
 	}
+	// Render big X's and O's for taken boxes
+	glUniform1f(scaleUni, 3.0f); // set piece size to 3x
 
-
+	for (int i = 0; i < 9; i++) {
+		if (xBoardBig & (1ULL << i)) {
+			//std::cout << (xBoardBig & (1ULL << i)) << std::endl;
+			xPieceShift = board.WIDTH + board.WIDTH * (i % 3) / 3.0f;
+			yPieceShift = -board.HEIGHT - board.HEIGHT * (i / 3) / 3.0f;
+			glUniform2f(movePositionShiftUni, xPieceShift, yPieceShift); // set shader uniform to proper offset
+			glUniform4f(pieceColorUni, 0.9f, 0.0f, 0.0f, 1.0f); // set the piece color to red
+			VAOx.Bind();
+			glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+			VAOx.Unbind();
+		}
+		if (oBoardBig & (1ULL << i)) {
+			xPieceShift = board.WIDTH + board.WIDTH * (i % 3) / 3.0f;
+			yPieceShift = -board.HEIGHT - board.HEIGHT * (i / 3) / 3.0f;
+			glUniform4f(pieceColorUni, 0.0f, 0.0f, 0.9f, 1.0f); // set the piece color to red
+			glUniform2f(movePositionShiftUni, xPieceShift, yPieceShift); // set shader uniform to proper offset
+			VAOo.Bind();
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 82);
+			VAOo.Unbind();
+		}
+	}
 
 	// check O-board
 	// render O's
